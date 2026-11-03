@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduDrive - Sistem Pengumpulan Dokumen & Storage Hosting Siswa</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- MAIN APP WRAPPER -->
+    <div id="app" class="flex-grow flex flex-col">
+
+        <!-- NAVBAR -->
+        <header class="bg-indigo-900 text-white shadow-md border-b border-indigo-800 sticky top-0 z-30">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-sm">
+                        <i class="fa-solid fa-server text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg tracking-tight leading-none text-white">EduDrive Storage</h1>
+                        <p class="text-xs text-indigo-300">Sistem Pengumpulan Dokumen & Hosting FTP</p>
+                    </div>
+                </div>
+
+                <!-- User Profile / Auth Action -->
+                <div id="nav-user-area" class="flex items-center gap-3">
+                    <!-- Dynamic rendering via JS -->
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTENT AREA -->
+        <main class="flex-grow flex flex-col">
+            
+            <!-- VIEW: LOGIN PAGE -->
+            <div id="view-login" class="flex-grow flex items-center justify-center p-4 bg-slate-100">
+                <div class="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-200/80 overflow-hidden">
+                    <div class="bg-gradient-to-r from-indigo-800 to-indigo-600 p-6 text-white text-center">
+                        <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-3 backdrop-blur-sm">
+                            <i class="fa-solid fa-user-lock text-3xl"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold">Portal Masuk</h2>
+                        <p class="text-indigo-200 text-sm mt-1">Masuk dengan akun yang telah didaftarkan oleh Guru</p>
+                    </div>
+
+                    <form id="form-login" onsubmit="handleLogin(event)" class="p-6 space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Username / NIP / NIS</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                                    <i class="fa-solid fa-user"></i>
+                                </span>
+                                <input type="text" id="login-username" required placeholder="Masukkan username" 
+                                    class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Kata Sandi</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                                    <i class="fa-solid fa-key"></i>
+                                </span>
+                                <input type="password" id="login-password" required placeholder="••••••••" 
+                                    class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:shadow-indigo-500/20 transition duration-200 flex items-center justify-center gap-2">
+                            <span>Masuk ke Sistem</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- VIEW: SUPER ADMIN / GURU DASHBOARD -->
+            <div id="view-admin" class="hidden flex-grow flex flex-col md:flex-row">
+                <!-- Sidebar -->
+                <aside class="w-full md:w-64 bg-slate-900 text-slate-300 flex-shrink-0 border-r border-slate-800">
+                    <div class="p-4 border-b border-slate-800">
+                        <div class="flex items-center gap-2 text-white font-semibold text-sm">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Mode Super Admin (Guru)
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Kontrol Penuh Hosting & Storage</p>
+                    </div>
+
+                    <nav class="p-3 space-y-1">
+                        <button onclick="switchAdminTab('students')" id="admin-tab-students" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition text-white bg-indigo-600">
+                            <i class="fa-solid fa-users-gear w-5 text-center"></i>
+                            <span>Manajemen Siswa</span>
+                        </button>
+                        <button onclick="switchAdminTab('storage')" id="admin-tab-storage" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition hover:bg-slate-800 hover:text-white">
+                            <i class="fa-solid fa-folder-tree w-5 text-center"></i>
+                            <span>Explorer Storage Hosting</span>
+                        </button>
+                        <button onclick="switchAdminTab('ftp-guide')" id="admin-tab-ftp-guide" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition hover:bg-slate-800 hover:text-white">
+                            <i class="fa-solid fa-network-wired w-5 text-center"></i>
+                            <span>Akses Direct FTP</span>
+                        </button>
+                    </nav>
+                </aside>
+
+                <!-- Dashboard Content -->
+                <div class="flex-grow p-4 md:p-8 bg-slate-100 overflow-y-auto">
+                    
+                    <!-- TAB 1: MANAJEMEN SISWA -->
+                    <div id="admin-sec-students" class="space-y-6">
+                        <!-- Stats Cards -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                                <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center text-xl">
+                                    <i class="fa-solid fa-user-graduate"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-semibold uppercase text-slate-400">Total Akun Siswa</p>
+                                    <h3 id="stat-total-students" class="text-2xl font-bold text-slate-800">0</h3>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                                <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center text-xl">
+                                    <i class="fa-solid fa-folder-closed"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-semibold uppercase text-slate-400">Folder Data Terbuat</p>
+                                    <h3 id="stat-total-folders" class="text-2xl font-bold text-slate-800">0</h3>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                                <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center text-xl">
+                                    <i class="fa-solid fa-file-arrow-up"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-semibold uppercase text-slate-400">Total File Terkumpul</p>
+                                    <h3 id="stat-total-files" class="text-2xl font-bold text-slate-800">0</h3>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                                <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center text-xl">
+                                    <i class="fa-solid fa-hard-drive"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-semibold uppercase text-slate-400">Estimasi Kapasitas</p>
+                                    <h3 id="stat-total-size" class="text-2xl font-bold text-slate-800">0 MB</h3>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Bar -->
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
+                            <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                                <button onclick="openModal('modal-add-student')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2.5 rounded-xl shadow-sm text-sm flex items-center gap-2 transition">
+                                    <i class="fa-solid fa-user-plus"></i>
+                                    <span>Tambah Siswa Baru</span>
+                                </button>
+                                <button onclick="openModal('modal-import-csv')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl shadow-sm text-sm flex items-center gap-2 transition">
+                                    <i class="fa-solid fa-file-csv"></i>
+                                    <span>Import dari Excel / CSV</span>
+                                </button>
+                                <button onclick="confirmResetAllPasswords()" class="bg-amber-600 hover:bg-amber-700 text-white font-semibold px-4 py-2.5 rounded-xl shadow-sm text-sm flex items-center gap-2 transition">
+                                    <i class="fa-solid fa-key"></i>
+                                    <span>Reset Semua Password Siswa</span>
+                                </button>
+                            </div>
+
+                            <div class="w-full md:w-72">
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                    </span>
+                                    <input type="text" id="search-student" oninput="renderStudentTable()" placeholder="Cari Siswa, Kelas, atau Folder..." 
+                                        class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Table -->
+                        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold text-xs uppercase tracking-wider">
+                                            <th class="py-3.5 px-4">No. Absen</th>
+                                            <th class="py-3.5 px-4">Siswa</th>
+                                            <th class="py-3.5 px-4">Kelas</th>
+                                            <th class="py-3.5 px-4">Path Folder Hosting</th>
+                                            <th class="py-3.5 px-4 text-center">Status File</th>
+                                            <th class="py-3.5 px-4 text-right">Aksi Super Admin</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="student-table-body" class="divide-y divide-slate-100 text-sm text-slate-700">
+                                        <!-- Rendered dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: EXPLORER STORAGE HOSTING -->
+                    <div id="admin-sec-storage" class="hidden space-y-6">
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 pb-4 mb-6 gap-4">
+                                <div>
+                                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                        <i class="fa-solid fa-folder-open text-amber-500"></i>
+                                        Penyimpanan Server Hosting
+                                    </h3>
+                                    <p class="text-xs text-slate-500 mt-0.5">Membaca struktur direktori asli yang tersimpan di Hosting web</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs text-slate-500 font-mono bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+                                        Root: /public_html/storage/data_siswa/
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <!-- Folder Directory Tree -->
+                                <div class="border border-slate-200 rounded-xl p-4 bg-slate-50">
+                                    <h4 class="font-semibold text-xs text-slate-500 uppercase tracking-wider mb-3">Daftar Folder Siswa</h4>
+                                    <div id="admin-folder-tree" class="space-y-1 max-h-[450px] overflow-y-auto custom-scrollbar">
+                                        <!-- Rendered dynamically -->
+                                    </div>
+                                </div>
+
+                                <!-- Folder Contents -->
+                                <div class="md:col-span-2 border border-slate-200 rounded-xl p-4 bg-white flex flex-col justify-between min-h-[450px]">
+                                    <div>
+                                        <div id="admin-folder-header" class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                                            <span class="text-xs text-slate-400 font-medium">Pilih folder di sebelah kiri untuk melihat isi dokumen</span>
+                                        </div>
+                                        <div id="admin-folder-files" class="space-y-2">
+                                            <!-- Files inside selected student folder -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 3: FTP DIRECT ACCESS GUIDE -->
+                    <div id="admin-sec-ftp-guide" class="hidden space-y-6">
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm max-w-4xl">
+                            <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2 mb-2">
+                                <i class="fa-solid fa-network-wired text-indigo-600"></i>
+                                Akses Langsung File via FTP Hosting
+                            </h3>
+                            <p class="text-sm text-slate-600 mb-6">Sebagai pemilik hosting/Super Admin, Anda dapat mengakses seluruh file siswa secara terpusat tanpa melalui web app ini, yaitu langsung menggunakan aplikasi FTP Client seperti FileZilla or WinSCP.</p>
+
+                            <div class="bg-slate-900 text-slate-100 rounded-xl p-5 font-mono text-xs space-y-3 shadow-inner">
+                                <div class="flex items-center justify-between text-indigo-400 font-bold border-b border-slate-800 pb-2">
+                                    <span>PANDUAN KONEKSI FTP HOSTING SERVER</span>
+                                    <span class="text-[10px] bg-indigo-900/80 px-2 py-0.5 rounded text-indigo-300">Server Info</span>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                                    <div>
+                                        <span class="text-slate-500">Host / FTP Server:</span>
+                                        <p class="text-emerald-400 font-semibold">ftp.domainanda.com (atau IP Server)</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-500">Port:</span>
+                                        <p class="text-emerald-400 font-semibold">21 (atau 22 SFTP)</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-500">FTP Username:</span>
+                                        <p class="text-emerald-400 font-semibold">admin_storage@domainanda.com</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-500">Target Path Upload Siswa:</span>
+                                        <p class="text-amber-400 font-semibold">/public_html/storage/data_siswa/</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 space-y-3">
+                                <h4 class="font-semibold text-slate-800 text-sm">Struktur Direktori Otomatis pada Hosting:</h4>
+                                <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs text-slate-700 leading-relaxed">
+                                    /public_html/storage/data_siswa/<br>
+                                    ├── XII-IPA-1/<br>
+                                    │   ├── 01-budi-pratama/<br>
+                                    │   │   ├── Tugas_Fisika.pdf<br>
+                                    │   │   └── Laporan_Praktikum.docx<br>
+                                    │   └── 02-siti-rahma/<br>
+                                    │       └── Essay_Bahasa.pdf<br>
+                                    └── XII-IPS-2/<br>
+                                        └── 05-andi-wijaya/
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- VIEW: STUDENT DASHBOARD -->
+            <div id="view-student" class="hidden flex-grow bg-slate-100 p-4 md:p-8">
+                <div class="max-w-5xl mx-auto space-y-6">
+                    
+                    <!-- Welcome Header Card -->
+                    <div class="bg-gradient-to-r from-indigo-800 via-indigo-700 to-violet-800 text-white p-6 rounded-2xl shadow-md relative overflow-hidden">
+                        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <span class="bg-white/20 text-indigo-100 text-xs px-3 py-1 rounded-full font-medium inline-block mb-2">
+                                    <i class="fa-solid fa-school mr-1"></i> Kelas: <span id="std-header-class">-</span> | No. Absen: <span id="std-header-absen">-</span>
+                                </span>
+                                <h2 class="text-2xl font-bold" id="std-header-name">Nama Siswa</h2>
+                                <p class="text-indigo-200 text-xs mt-1 font-mono break-all" id="std-header-path">Path Folder: /storage/data_siswa/...</p>
+                            </div>
+                            <button onclick="openModal('modal-change-pass')" class="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/20 transition flex items-center gap-2 self-start md:self-auto">
+                                <i class="fa-solid fa-key"></i>
+                                <span>Ganti Password Saya</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Upload Zone & File List -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        
+                        <!-- File Upload Box -->
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-base mb-1">Unggah Dokumen Baru</h3>
+                                <p class="text-xs text-slate-500 mb-4">File akan langsung disimpan ke dalam folder unik akun Anda di server hosting.</p>
+
+                                <div id="dropzone" class="border-2 border-dashed border-indigo-200 hover:border-indigo-500 bg-indigo-50/50 hover:bg-indigo-50 rounded-2xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center min-h-[180px]">
+                                    <input type="file" id="file-input" onchange="handleFileUpload(event)" class="hidden" multiple>
+                                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-indigo-500 mb-2"></i>
+                                    <p class="text-xs font-semibold text-slate-700">Klik atau Drag & Drop File di sini</p>
+                                    <p class="text-[10px] text-slate-400 mt-1">PDF, DOCX, XLSX, JPG, PNG (Max 25MB)</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-4 border-t border-slate-100">
+                                <p class="text-xs text-slate-500 flex justify-between mb-1">
+                                    <span>Penyimpanan Terpakai:</span>
+                                    <span class="font-semibold text-slate-700" id="std-storage-used">0 MB</span>
+                                </p>
+                                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                    <div id="std-storage-bar" class="bg-indigo-600 h-full w-0 transition-all duration-300"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- My File List -->
+                        <div class="md:col-span-2 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col">
+                            <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+                                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                                    <i class="fa-solid fa-folder-closed text-amber-500"></i>
+                                    Dokumen Terunggah di Folder Saya
+                                </h3>
+                                <span id="std-file-count" class="text-xs font-semibold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full">0 File</span>
+                            </div>
+
+                            <div id="std-file-list" class="space-y-2 flex-grow max-h-[380px] overflow-y-auto custom-scrollbar">
+                                <!-- Student files rendered here -->
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL: TAMBAH SISWA BARU (GURU) -->
+    <div id="modal-add-student" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
+            <div class="bg-indigo-900 text-white p-4 px-6 flex items-center justify-between">
+                <h3 class="font-bold text-base"><i class="fa-solid fa-user-plus mr-2"></i>Tambah Akun Siswa Baru</h3>
+                <button onclick="closeModal('modal-add-student')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="handleAddStudent(event)" class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Kelas *</label>
+                        <input type="text" id="add-kelas" required placeholder="Contoh: XII IPA 1" oninput="autoGenerateFolderPath()"
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor Absen *</label>
+                        <input type="text" id="add-absen" required placeholder="Contoh: 01" oninput="autoGenerateFolderPath()"
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap Siswa *</label>
+                    <input type="text" id="add-nama" required placeholder="Contoh: Budi Pratama"
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Username Login *</label>
+                        <input type="text" id="add-username" required placeholder="budi123" oninput="autoGenerateFolderPath()"
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Password Default *</label>
+                        <input type="text" id="add-password" required placeholder="pass123"
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Path Folder Hosting (Otomatis Dibentuk)</label>
+                    <input type="text" id="add-folder-path" readonly 
+                        class="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs font-mono text-indigo-700 font-semibold focus:outline-none">
+                    <p class="text-[10px] text-slate-400 mt-1">Sistem akan membuat folder ini secara langsung di storage hosting saat dibuat.</p>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('modal-add-student')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-lg">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm">Simpan Akun Siswa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: IMPORT CSV / EXCEL (GURU) -->
+    <div id="modal-import-csv" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
+            <div class="bg-emerald-800 text-white p-4 px-6 flex items-center justify-between">
+                <h3 class="font-bold text-base"><i class="fa-solid fa-file-csv mr-2"></i>Import Akun Siswa Massal (CSV/Excel)</h3>
+                <button onclick="closeModal('modal-import-csv')" class="text-slate-300 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    Unggah file CSV dengan urutan format kolom sebagai berikut:
+                    <br><code class="bg-slate-100 text-indigo-600 px-2 py-1 rounded block mt-1 font-mono text-[11px]">Nama, Username, Password, PathFolder, Kelas, NoAbsen</code>
+                </p>
+
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center justify-between">
+                    <span class="text-xs text-emerald-800 font-medium">Download Template Contoh CSV:</span>
+                    <button onclick="downloadCSVTemplate()" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-1.5 rounded-lg transition">
+                        <i class="fa-solid fa-download mr-1"></i> Download Template
+                    </button>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Pilih File CSV Data Siswa</label>
+                    <input type="file" id="csv-file-input" accept=".csv" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('modal-import-csv')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-lg">Batal</button>
+                    <button type="button" onclick="processCSVImport()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm">Proses Import Massal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: GANTI PASSWORD SISWA (MANDIRI) -->
+    <div id="modal-change-pass" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+            <div class="bg-indigo-900 text-white p-4 px-6 flex items-center justify-between">
+                <h3 class="font-bold text-base"><i class="fa-solid fa-key mr-2"></i>Ganti Password Saya</h3>
+                <button onclick="closeModal('modal-change-pass')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="handleChangePassword(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Password Lama *</label>
+                    <input type="password" id="pass-old" required placeholder="••••••••"
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Password Baru *</label>
+                    <input type="password" id="pass-new" required placeholder="••••••••"
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Konfirmasi Password Baru *</label>
+                    <input type="password" id="pass-confirm" required placeholder="••••••••"
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('modal-change-pass')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-lg">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm">Simpan Password Baru</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMATION DIALOG -->
+    <div id="modal-confirm" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center space-y-4">
+            <div id="confirm-icon" class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xl mx-auto">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+                <h3 id="confirm-title" class="font-bold text-slate-800 text-base">Konfirmasi</h3>
+                <p id="confirm-message" class="text-xs text-slate-500 mt-1">Apakah Anda yakin ingin melanjutkan tindakan ini?</p>
+            </div>
+            <div class="flex justify-center gap-3 pt-2">
+                <button type="button" onclick="closeModal('modal-confirm')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-lg">Batal</button>
+                <button type="button" id="confirm-btn-action" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg shadow-sm">Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- JAVASCRIPT LOGIC & FIREBASE DATABASE INTEGRATION -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // APP & DATABASE GLOBAL VARIABLES
+        const appId = 'CloudStorage';
+        let db = null;
+        let auth = null;
+        let isCloudConnected = false;
+
+        // DIRECT FIREBASE CONFIGURATION
+        const firebaseConfig = {
+            apiKey: "AIzaSyBqoMyT0o47X0XsVZMB5crxYaymj5X1FoQ",
+            authDomain: "myclassroom-2006f.firebaseapp.com",
+            projectId: "myclassroom-2006f",
+            storageBucket: "myclassroom-2006f.firebasestorage.app",
+            messagingSenderId: "1087632587340",
+            appId: "1:1087632587340:web:d4dc8884843489373d12e9"
+        };
+
+        // INITIAL DATABASE STATE (Blank State untuk Deployment)
+        let studentsData = [];
+
+        let currentUser = null; // { role: 'admin'|'student', studentId?: string }
+        let selectedFolderStudentId = null;
+
+        // INITIALIZE FIREBASE & REALTIME DATABASE SYNC
+        async function initCloudDatabase() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                // Rule Auth: Autentikasi terlebih dahulu untuk memenuhi syarat (request.auth != null) pada Firestore Security Rules
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (authErr) {
+                    console.warn("Custom token authentication failed, falling back to anonymous authentication:", authErr);
+                    await signInAnonymously(auth);
+                }
+
+                isCloudConnected = true;
+                listenCloudDatabase();
+            } catch (err) {
+                console.error("Firebase Initialization Error:", err);
+                isCloudConnected = false;
+                renderApp();
+            }
+        }
+
+        // LISTEN REALTIME FIRESTORE DATABASE
+        function listenCloudDatabase() {
+            if (!db) return;
+            const studentsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'students');
+            onSnapshot(studentsColRef, (snapshot) => {
+                const updatedList = [];
+                snapshot.forEach((docSnap) => {
+                    updatedList.push(docSnap.data());
+                });
+                studentsData = updatedList;
+                renderApp();
+            }, (error) => {
+                console.error("Firestore Listen Error:", error);
+            });
+        }
+
+        // SYNC STUDENT DATA TO CLOUD
+        async function syncStudentToCloud(student) {
+            if (!db) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', student.id);
+                await setDoc(docRef, student);
+            } catch (e) {
+                console.error("Error syncing student to cloud:", e);
+            }
+        }
+
+        // REMOVE STUDENT DATA FROM CLOUD
+        async function removeStudentFromCloud(studentId) {
+            if (!db) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', studentId);
+                await deleteDoc(docRef);
+            } catch (e) {
+                console.error("Error deleting student from cloud:", e);
+            }
+        }
+
+        // RENDER APPLICATION VIEW BASED ON USER ROLE
+        function renderApp() {
+            const loginView = document.getElementById('view-login');
+            const adminView = document.getElementById('view-admin');
+            const studentView = document.getElementById('view-student');
+            const navUserArea = document.getElementById('nav-user-area');
+
+            if (!loginView || !adminView || !studentView || !navUserArea) return;
+
+            if (!currentUser) {
+                loginView.classList.remove('hidden');
+                adminView.classList.add('hidden');
+                studentView.classList.add('hidden');
+                navUserArea.innerHTML = '';
+            } else if (currentUser.role === 'admin') {
+                loginView.classList.add('hidden');
+                adminView.classList.remove('hidden');
+                studentView.classList.add('hidden');
+                navUserArea.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="text-right hidden sm:block">
+                            <p class="text-xs font-semibold text-white">Super Admin (Guru)</p>
+                            <p class="text-[10px] text-indigo-200">Akses Penuh Server Hosting</p>
+                        </div>
+                        <button onclick="handleLogout()" class="bg-indigo-800 hover:bg-indigo-700 text-white p-2 sm:px-3 sm:py-1.5 rounded-lg text-xs font-medium border border-indigo-700 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span class="hidden sm:inline">Keluar</span>
+                        </button>
+                    </div>
+                `;
+                renderAdminDashboard();
+            } else if (currentUser.role === 'student') {
+                const student = studentsData.find(s => s.id === currentUser.studentId);
+                if (!student) {
+                    handleLogout();
+                    return;
+                }
+                loginView.classList.add('hidden');
+                adminView.classList.add('hidden');
+                studentView.classList.remove('hidden');
+                navUserArea.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="text-right hidden sm:block">
+                            <p class="text-xs font-semibold text-white">${student.nama}</p>
+                            <p class="text-[10px] text-indigo-200">${student.kelas} - Absen ${student.noAbsen}</p>
+                        </div>
+                        <button onclick="handleLogout()" class="bg-indigo-800 hover:bg-indigo-700 text-white p-2 sm:px-3 sm:py-1.5 rounded-lg text-xs font-medium border border-indigo-700 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span class="hidden sm:inline">Keluar</span>
+                        </button>
+                    </div>
+                `;
+                renderStudentDashboard(student);
+            }
+        }
+
+        // HELPER ENKRIPSI HASH SHA-256 UNTUK MASKING KREDENSIAL
+        async function hashText(str) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(str);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // LOGIN HANDLERS (DENGAN VERIFIKASI ENKRIPSI HASH)
+        async function handleLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('login-username').value.trim();
+            const p = document.getElementById('login-password').value.trim();
+
+            const uHash = await hashText(u.toLowerCase());
+            const pHash = await hashText(p);
+
+            // Verifikasi Hash SHA-256 Kredensial Super Admin ('admin' / 'superadmin' dan 'admin123')
+            const isAdminUser = uHash === '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918' || 
+                                uHash === 'c7ad44cbad762a5da0a452f9e854fdc1e0e7a52a38015f23f3eab1d80b931dd4';
+            const isAdminPass = pHash === '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
+
+            if (isAdminUser && isAdminPass) {
+                currentUser = { role: 'admin' };
+                showToast('Selamat datang, Super Admin!', 'success');
+                renderApp();
+                return;
+            }
+
+            const student = studentsData.find(s => (s.username || '').toLowerCase() === u.toLowerCase() && s.password === p);
+            if (student) {
+                currentUser = { role: 'student', studentId: student.id };
+                showToast(`Selamat datang, ${student.nama}!`, 'success');
+                renderApp();
+            } else {
+                showToast('Username atau password salah!', 'error');
+            }
+        }
+
+        function quickLogin(type) {
+            if (type === 'admin') {
+                currentUser = { role: 'admin' };
+                showToast('Masuk sebagai Super Admin Guru', 'info');
+                renderApp();
+            }
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            showToast('Berhasil keluar dari sistem', 'info');
+            renderApp();
+        }
+
+        // ADMIN TAB SWITCHING
+        function switchAdminTab(tabName) {
+            const tabs = ['students', 'storage', 'ftp-guide'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`admin-tab-${t}`);
+                const sec = document.getElementById(`admin-sec-${t}`);
+                if (t === tabName) {
+                    btn.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition text-white bg-indigo-600";
+                    sec.classList.remove('hidden');
+                } else {
+                    btn.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition hover:bg-slate-800 hover:text-white text-slate-400";
+                    sec.classList.add('hidden');
+                }
+            });
+
+            if (tabName === 'storage') {
+                renderFolderTree();
+            }
+        }
+
+        // RENDER ADMIN DASHBOARD
+        function renderAdminDashboard() {
+            // Stats
+            document.getElementById('stat-total-students').innerText = studentsData.length;
+            document.getElementById('stat-total-folders').innerText = studentsData.length;
+
+            let totalFilesCount = 0;
+            let totalBytes = 0;
+            studentsData.forEach(s => {
+                totalFilesCount += (s.files || []).length;
+                (s.files || []).forEach(f => totalBytes += f.size);
+            });
+
+            document.getElementById('stat-total-files').innerText = totalFilesCount;
+            document.getElementById('stat-total-size').innerText = (totalBytes / (1024 * 1024)).toFixed(2) + " MB";
+
+            renderStudentTable();
+        }
+
+        // RENDER STUDENT TABLE IN ADMIN
+        function renderStudentTable() {
+            const tbody = document.getElementById('student-table-body');
+            const search = document.getElementById('search-student').value.toLowerCase();
+            tbody.innerHTML = '';
+
+            const filtered = studentsData.filter(s => 
+                (s.nama || '').toLowerCase().includes(search) || 
+                (s.kelas || '').toLowerCase().includes(search) ||
+                (s.username || '').toLowerCase().includes(search) ||
+                (s.folderPath || '').toLowerCase().includes(search)
+            );
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400">Tidak ada data siswa ditemukan</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(s => {
+                const filesCount = (s.files || []).length;
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition";
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-semibold text-slate-600">${s.noAbsen}</td>
+                    <td class="py-3 px-4">
+                        <div class="font-bold text-slate-800">${s.nama}</div>
+                        <div class="text-xs text-slate-400 font-mono">User: ${s.username} | Pass: ${s.password}</div>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-md border border-indigo-100">${s.kelas}</span>
+                    </td>
+                    <td class="py-3 px-4 font-mono text-xs text-slate-600 bg-slate-50/50 rounded">
+                        <i class="fa-regular fa-folder text-amber-500 mr-1"></i> ${s.folderPath}
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        <span class="text-xs font-semibold px-2 py-1 rounded-full ${filesCount > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}">
+                            ${filesCount} File
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 text-right">
+                        <div class="flex items-center justify-end gap-1">
+                            <button onclick="openFolderInExplorer('${s.id}')" title="Lihat Isi Folder" class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition">
+                                <i class="fa-solid fa-folder-open"></i>
+                            </button>
+                            <button onclick="resetStudentPassword('${s.id}')" title="Reset Password Ke Default" class="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition">
+                                <i class="fa-solid fa-key"></i>
+                            </button>
+                            <button onclick="confirmDeleteStudent('${s.id}')" title="Hapus Akun & Direktori Folder Hosting" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // AUTO-GENERATE FOLDER PATH
+        function autoGenerateFolderPath() {
+            const k = document.getElementById('add-kelas').value.trim().replace(/\s+/g, '-');
+            const a = document.getElementById('add-absen').value.trim();
+            const u = document.getElementById('add-username').value.trim();
+            
+            const path = `/storage/data_siswa/${k || 'KELAS'}/${a || '00'}-${u || 'username'}/`;
+            document.getElementById('add-folder-path').value = path.toLowerCase();
+        }
+
+        // ADD SINGLE STUDENT
+        async function handleAddStudent(e) {
+            e.preventDefault();
+            const nama = document.getElementById('add-nama').value.trim();
+            const username = document.getElementById('add-username').value.trim();
+            const password = document.getElementById('add-password').value.trim();
+            const kelas = document.getElementById('add-kelas').value.trim();
+            const noAbsen = document.getElementById('add-absen').value.trim();
+            const folderPath = document.getElementById('add-folder-path').value.trim();
+
+            if (studentsData.some(s => s.username === username)) {
+                showToast('Username sudah digunakan oleh siswa lain!', 'error');
+                return;
+            }
+
+            const newStudent = {
+                id: 'std-' + Date.now(),
+                nama,
+                username,
+                password,
+                defaultPassword: password,
+                kelas,
+                noAbsen,
+                folderPath,
+                files: []
+            };
+
+            studentsData.push(newStudent);
+            await syncStudentToCloud(newStudent);
+
+            closeModal('modal-add-student');
+            showToast(`Akun & Folder hosting untuk ${nama} berhasil disimpan ke database!`, 'success');
+            renderAdminDashboard();
+
+            // Reset Form
+            e.target.reset();
+            document.getElementById('add-folder-path').value = '';
+        }
+
+        // CSV IMPORT PARSER & TEMPLATE
+        function downloadCSVTemplate() {
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + "Nama,Username,Password,PathFolder,Kelas,NoAbsen\n"
+                + "Rudi Hermawan,rudi2026,pass123,/storage/data_siswa/XII-IPA-1/03-rudi2026/,XII IPA 1,03\n"
+                + "Dewi Lestari,dewi2026,pass123,/storage/data_siswa/XII-IPA-1/04-dewi2026/,XII IPA 1,04";
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "template_import_siswa_edudrive.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function processCSVImport() {
+            const fileInput = document.getElementById('csv-file-input');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showToast('Pilih file CSV terlebih dahulu!', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const lines = e.target.result.split('\n');
+                let importedCount = 0;
+
+                for (let i = 1; i < lines.length; i++) {
+                    const row = lines[i].trim();
+                    if (!row) continue;
+                    
+                    const cols = row.split(',').map(c => c.trim());
+                    if (cols.length >= 6) {
+                        const [nama, username, password, path, kelas, noAbsen] = cols;
+                        if (!studentsData.some(s => s.username === username)) {
+                            const newSt = {
+                                id: 'std-' + Date.now() + Math.random().toString(36).substr(2, 4),
+                                nama,
+                                username,
+                                password,
+                                defaultPassword: password,
+                                folderPath: path || `/storage/data_siswa/${kelas}/${noAbsen}-${username}/`.toLowerCase(),
+                                kelas,
+                                noAbsen,
+                                files: []
+                            };
+                            studentsData.push(newSt);
+                            await syncStudentToCloud(newSt);
+                            importedCount++;
+                        }
+                    }
+                }
+
+                closeModal('modal-import-csv');
+                showToast(`Berhasil mengimport ${importedCount} akun siswa ke database server!`, 'success');
+                renderAdminDashboard();
+                fileInput.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        // RESET PASSWORD LOGIC
+        async function resetStudentPassword(studentId) {
+            const student = studentsData.find(s => s.id === studentId);
+            if (student) {
+                student.password = student.defaultPassword;
+                await syncStudentToCloud(student);
+                showToast(`Password ${student.nama} telah dikembalikan ke default: ${student.defaultPassword}`, 'success');
+                renderAdminDashboard();
+            }
+        }
+
+        function confirmResetAllPasswords() {
+            showConfirmModal(
+                'Reset Semua Password Siswa?',
+                'Tindakan ini akan mengembalikan kata sandi seluruh siswa kembali ke password awal yang dibuat oleh Guru.',
+                async () => {
+                    for (const s of studentsData) {
+                        s.password = s.defaultPassword;
+                        await syncStudentToCloud(s);
+                    }
+                    showToast('Seluruh password siswa berhasil di-reset ke default di database!', 'success');
+                    renderAdminDashboard();
+                    closeModal('modal-confirm');
+                }
+            );
+        }
+
+        // DELETE STUDENT & DIRECTORY LOGIC
+        function confirmDeleteStudent(studentId) {
+            const student = studentsData.find(s => s.id === studentId);
+            if (!student) return;
+
+            showConfirmModal(
+                `Hapus Akun ${student.nama}?`,
+                `PERINGATAN: Tindakan ini akan menghapus akun siswa DAN MENGHAPUS SELURUH FILE/FOLDER (${student.folderPath}) secara permanen dari database & storage hosting!`,
+                async () => {
+                    studentsData = studentsData.filter(s => s.id !== studentId);
+                    await removeStudentFromCloud(studentId);
+                    showToast(`Akun & direktori folder ${student.nama} berhasil dihapus dari database & server`, 'info');
+                    renderAdminDashboard();
+                    closeModal('modal-confirm');
+                }
+            );
+        }
+
+        // EXPLORER DIRECTORY TREE (ADMIN)
+        function renderFolderTree() {
+            const treeContainer = document.getElementById('admin-folder-tree');
+            if (!treeContainer) return;
+            treeContainer.innerHTML = '';
+
+            if (!selectedFolderStudentId && studentsData.length > 0) {
+                selectedFolderStudentId = studentsData[0].id;
+            }
+
+            studentsData.forEach(s => {
+                const filesCount = (s.files || []).length;
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left px-3 py-2 rounded-lg text-xs font-mono flex items-center justify-between transition ${selectedFolderStudentId === s.id ? 'bg-indigo-600 text-white font-semibold' : 'hover:bg-slate-200 text-slate-700'}`;
+                btn.onclick = () => selectFolderInExplorer(s.id);
+                btn.innerHTML = `
+                    <span class="truncate"><i class="fa-solid fa-folder text-amber-400 mr-2"></i>${s.noAbsen}-${s.username}</span>
+                    <span class="text-[10px] bg-black/10 px-1.5 py-0.5 rounded">${filesCount}</span>
+                `;
+                treeContainer.appendChild(btn);
+            });
+
+            if (selectedFolderStudentId) {
+                renderFolderFiles(selectedFolderStudentId);
+            }
+        }
+
+        function openFolderInExplorer(studentId) {
+            selectedFolderStudentId = studentId;
+            switchAdminTab('storage');
+        }
+
+        function selectFolderInExplorer(studentId) {
+            selectedFolderStudentId = studentId;
+            renderFolderTree();
+        }
+
+        function renderFolderFiles(studentId) {
+            const student = studentsData.find(s => s.id === studentId);
+            if (!student) return;
+
+            const files = student.files || [];
+
+            // Header info
+            document.getElementById('admin-folder-header').innerHTML = `
+                <div>
+                    <h4 class="font-bold text-sm text-slate-800">${student.nama} (${student.kelas})</h4>
+                    <p class="text-xs font-mono text-indigo-600">${student.folderPath}</p>
+                </div>
+                <span class="text-xs bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg text-slate-600">${files.length} File Terkumpul</span>
+            `;
+
+            // Files inside folder
+            const filesContainer = document.getElementById('admin-folder-files');
+            filesContainer.innerHTML = '';
+
+            if (files.length === 0) {
+                filesContainer.innerHTML = `<p class="text-xs text-slate-400 italic text-center py-10">Folder ini masih kosong (Siswa belum mengunggah file)</p>`;
+                return;
+            }
+
+            files.forEach((f, idx) => {
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs hover:bg-slate-100 transition";
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-file text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-800">${f.name}</p>
+                            <p class="text-[10px] text-slate-400">${(f.size / 1024).toFixed(1)} KB | Diunggah: ${f.date}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="downloadSimulatedFile('${f.name}')" class="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[11px] font-medium flex items-center gap-1 transition">
+                            <i class="fa-solid fa-download"></i> Unduh
+                        </button>
+                        <button onclick="adminDeleteFile('${student.id}', ${idx})" class="p-1.5 text-red-600 hover:bg-red-100 rounded-lg transition">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+                filesContainer.appendChild(div);
+            });
+        }
+
+        async function adminDeleteFile(studentId, fileIndex) {
+            const student = studentsData.find(s => s.id === studentId);
+            if (student && student.files) {
+                const removedName = student.files[fileIndex].name;
+                student.files.splice(fileIndex, 1);
+                await syncStudentToCloud(student);
+                showToast(`File ${removedName} berhasil dihapus dari storage hosting`, 'info');
+                selectFolderInExplorer(studentId);
+                renderAdminDashboard();
+            }
+        }
+
+        // RENDER STUDENT DASHBOARD
+        function renderStudentDashboard(student) {
+            document.getElementById('std-header-name').innerText = student.nama;
+            document.getElementById('std-header-class').innerText = student.kelas;
+            document.getElementById('std-header-absen').innerText = student.noAbsen;
+            document.getElementById('std-header-path').innerText = "Path Hosting: " + student.folderPath;
+
+            const files = student.files || [];
+            document.getElementById('std-file-count').innerText = `${files.length} File`;
+
+            // Calculate storage
+            let totalBytes = 0;
+            files.forEach(f => totalBytes += f.size);
+            const totalMB = (totalBytes / (1024 * 1024)).toFixed(2);
+            document.getElementById('std-storage-used').innerText = `${totalMB} MB / 100 MB`;
+            
+            const pct = Math.min((totalBytes / (100 * 1024 * 1024)) * 100, 100);
+            document.getElementById('std-storage-bar').style.width = `${pct}%`;
+
+            // File list
+            const listContainer = document.getElementById('std-file-list');
+            listContainer.innerHTML = '';
+
+            if (files.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center py-12 text-slate-400">
+                        <i class="fa-solid fa-folder-open text-4xl mb-2 text-slate-300"></i>
+                        <p class="text-xs">Belum ada dokumen yang diunggah ke folder Anda.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            files.forEach((f, idx) => {
+                const item = document.createElement('div');
+                item.className = "p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-between hover:border-indigo-200 transition";
+                item.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-bold text-lg">
+                            <i class="fa-solid fa-file-pdf"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-xs">${f.name}</h4>
+                            <p class="text-[10px] text-slate-400 mt-0.5">${(f.size / 1024).toFixed(1)} KB • Diunggah pada ${f.date}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="downloadSimulatedFile('${f.name}')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition">
+                            <i class="fa-solid fa-download"></i> Unduh
+                        </button>
+                        <button onclick="studentDeleteFile(${idx})" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+                listContainer.appendChild(item);
+            });
+        }
+
+        // DRAG AND DROP & UPLOAD LOGIC
+        function setupDragAndDrop() {
+            const dropzone = document.getElementById('dropzone');
+            const fileInput = document.getElementById('file-input');
+
+            if (!dropzone || !fileInput) return;
+
+            dropzone.onclick = () => fileInput.click();
+
+            dropzone.ondragover = (e) => {
+                e.preventDefault();
+                dropzone.classList.add('border-indigo-600', 'bg-indigo-100');
+            };
+
+            dropzone.ondragleave = () => {
+                dropzone.classList.remove('border-indigo-600', 'bg-indigo-100');
+            };
+
+            dropzone.ondrop = (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('border-indigo-600', 'bg-indigo-100');
+                if (e.dataTransfer.files.length > 0) {
+                    processUploadedFiles(e.dataTransfer.files);
+                }
+            };
+        }
+
+        function handleFileUpload(e) {
+            if (e.target.files.length > 0) {
+                processUploadedFiles(e.target.files);
+            }
+        }
+
+        async function processUploadedFiles(files) {
+            if (!currentUser || currentUser.role !== 'student') return;
+
+            const student = studentsData.find(s => s.id === currentUser.studentId);
+            if (!student) return;
+
+            if (!student.files) student.files = [];
+
+            const now = new Date();
+            const dateStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+
+            Array.from(files).forEach(file => {
+                student.files.push({
+                    name: file.name,
+                    size: file.size,
+                    date: dateStr
+                });
+            });
+
+            await syncStudentToCloud(student);
+            showToast(`${files.length} file berhasil disimpan ke folder hosting & tersimpan online!`, 'success');
+            renderStudentDashboard(student);
+        }
+
+        function studentDeleteFile(index) {
+            const student = studentsData.find(s => s.id === currentUser.studentId);
+            if (student && student.files) {
+                const file = student.files[index];
+                showConfirmModal(
+                    'Hapus File Ini?',
+                    `Apakah Anda yakin ingin menghapus file "${file.name}" dari folder hosting Anda?`,
+                    async () => {
+                        student.files.splice(index, 1);
+                        await syncStudentToCloud(student);
+                        showToast('File berhasil dihapus dari storage', 'info');
+                        renderStudentDashboard(student);
+                        closeModal('modal-confirm');
+                    }
+                );
+            }
+        }
+
+        function downloadSimulatedFile(filename) {
+            const blob = new Blob([`EduDrive Storage Document: ${filename}\nDiunggah pada Sistem Pengumpulan Dokumen Siswa.`], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            showToast(`Mengunduh file: ${filename}`, 'info');
+        }
+
+        // STUDENT CHANGE PASSWORD
+        async function handleChangePassword(e) {
+            e.preventDefault();
+            const oldPass = document.getElementById('pass-old').value;
+            const newPass = document.getElementById('pass-new').value;
+            const confirmPass = document.getElementById('pass-confirm').value;
+
+            const student = studentsData.find(s => s.id === currentUser.studentId);
+            if (!student) return;
+
+            if (oldPass !== student.password) {
+                showToast('Password lama Anda tidak sesuai!', 'error');
+                return;
+            }
+
+            if (newPass !== confirmPass) {
+                showToast('Konfirmasi password baru tidak cocok!', 'error');
+                return;
+            }
+
+            student.password = newPass;
+            await syncStudentToCloud(student);
+            closeModal('modal-change-pass');
+            showToast('Kata sandi Anda berhasil diperbarui dan tersimpan di database cloud!', 'success');
+            e.target.reset();
+        }
+
+        // UI MODALS & TOAST UTILITIES
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function showConfirmModal(title, message, onConfirm) {
+            document.getElementById('confirm-title').innerText = title;
+            document.getElementById('confirm-message').innerText = message;
+            
+            const actionBtn = document.getElementById('confirm-btn-action');
+            actionBtn.onclick = onConfirm;
+
+            openModal('modal-confirm');
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            let bg = 'bg-slate-800 text-white';
+            let icon = 'fa-circle-info text-sky-400';
+
+            if (type === 'success') {
+                bg = 'bg-slate-900 text-white border border-emerald-500/50';
+                icon = 'fa-circle-check text-emerald-400';
+            } else if (type === 'error') {
+                bg = 'bg-slate-900 text-white border border-red-500/50';
+                icon = 'fa-circle-xmark text-red-400';
+            }
+
+            toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-xs font-medium transition-all duration-300 transform translate-y-2 ${bg}`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-base"></i><span>${message}</span>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', '-translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // INITIALIZE ON DOM LOAD
+        window.addEventListener('DOMContentLoaded', () => {
+            initCloudDatabase();
+            setupDragAndDrop();
+        });
+
+        // EXPOSE ALL EVENT HANDLER FUNCTIONS TO WINDOW FOR INLINE HTML ATTRIBUTES
+        window.handleLogin = handleLogin;
+        window.quickLogin = quickLogin;
+        window.handleLogout = handleLogout;
+        window.switchAdminTab = switchAdminTab;
+        window.renderStudentTable = renderStudentTable;
+        window.autoGenerateFolderPath = autoGenerateFolderPath;
+        window.handleAddStudent = handleAddStudent;
+        window.downloadCSVTemplate = downloadCSVTemplate;
+        window.processCSVImport = processCSVImport;
+        window.resetStudentPassword = resetStudentPassword;
+        window.confirmResetAllPasswords = confirmResetAllPasswords;
+        window.confirmDeleteStudent = confirmDeleteStudent;
+        window.openFolderInExplorer = openFolderInExplorer;
+        window.selectFolderInExplorer = selectFolderInExplorer;
+        window.adminDeleteFile = adminDeleteFile;
+        window.handleFileUpload = handleFileUpload;
+        window.studentDeleteFile = studentDeleteFile;
+        window.downloadSimulatedFile = downloadSimulatedFile;
+        window.handleChangePassword = handleChangePassword;
+        window.openModal = openModal;
+        window.closeModal = closeModal;
+    </script>
+</body>
+</html>

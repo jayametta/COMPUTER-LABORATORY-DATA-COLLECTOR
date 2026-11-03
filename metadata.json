@@ -1,0 +1,6 @@
+{
+  "name": "EduDrive Storage",
+  "description": "Aplikasi manajemen file dan pengumpulan dokumen siswa berbasis web dengan penyimpanan folder server real-time, kontrol Super Admin Guru, dan integrasi database Firestore.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
